@@ -3,6 +3,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Plus, MessageSquare } from "lucide-react";
+import SearchBar from "./SearchBar";
 
 interface Conversation {
   _id: string;
@@ -30,7 +31,6 @@ export default function ConversationSidebar({
 }: SidebarProps) {
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden transition-opacity"
@@ -56,12 +56,17 @@ export default function ConversationSidebar({
           <Button
             size="sm"
             onClick={onNew}
-            className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
             aria-label="Start new conversation"
           >
             <Plus size={14} />
             <span className="hidden sm:inline">New</span>
           </Button>
+        </div>
+
+        {/* Search */}
+        <div className="px-3 pb-3">
+          <SearchBar conversations={conversations} onSelect={onSelect} />
         </div>
 
         {/* Divider */}
@@ -88,7 +93,7 @@ export default function ConversationSidebar({
                   role="listitem"
                   aria-current={activeId === conv._id ? "page" : undefined}
                   className={`
-                    w-full text-left px-3 py-2.5 rounded-lg text-sm
+                    w-full text-left px-3 py-2.5 rounded-lg text-sm cursor-pointer
                     transition-colors duration-100
                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-sidebar-bg
                     ${
