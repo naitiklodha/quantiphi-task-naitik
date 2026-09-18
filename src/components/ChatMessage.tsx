@@ -10,14 +10,19 @@ export default function ChatMessage({ role, content, isStreaming }: ChatMessageP
   const isUser = role === "user";
 
   return (
-    <div className={`animate-fade-in flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+    <div
+      className={`animate-fade-in flex ${isUser ? "justify-end" : "justify-start"} mb-3`}
+      role="article"
+      aria-label={`${isUser ? "Your message" : "AI response"}`}
+    >
       <div
         className={`
-          max-w-[80%] lg:max-w-[65%] px-4 py-3 text-sm leading-relaxed
+          max-w-[80%] lg:max-w-[70%] px-4 py-3 text-sm leading-relaxed
+          focus:outline-none
           ${
             isUser
-              ? "bg-bg-user-bubble text-white rounded-2xl rounded-br-md"
-              : "bg-bg-ai-bubble text-text-primary rounded-2xl rounded-bl-md shadow-[var(--shadow-sm)]"
+              ? "bg-user-bubble text-user-bubble-fg rounded-2xl rounded-br-md"
+              : "bg-ai-bubble text-ai-bubble-fg rounded-2xl rounded-bl-md shadow-sm border border-border"
           }
         `}
       >

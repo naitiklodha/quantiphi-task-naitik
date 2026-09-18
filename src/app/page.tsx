@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { MessageSquarePlus } from "lucide-react";
 import ConversationSidebar from "@/components/ConversationSidebar";
 import ChatArea from "@/components/ChatArea";
 
@@ -24,9 +26,11 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const fetchConversations = useCallback(async () => {
-    const res = await fetch("/api/conversations");
-    const data = await res.json();
-    setConversations(data);
+    try {
+      const res = await fetch("/api/conversations");
+      const data = await res.json();
+      setConversations(data);
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -34,26 +38,30 @@ export default function Home() {
   }, [fetchConversations]);
 
   const loadConversation = async (id: string) => {
-    const res = await fetch(`/api/conversations/${id}`);
-    const data = await res.json();
-    setActiveId(id);
-    setMessages(data.messages || []);
-    setTone(data.tone || "professional");
-    setSidebarOpen(false);
+    try {
+      const res = await fetch(`/api/conversations/${id}`);
+      const data = await res.json();
+      setActiveId(id);
+      setMessages(data.messages || []);
+      setTone(data.tone || "professional");
+      setSidebarOpen(false);
+    } catch {}
   };
 
   const handleNewChat = async () => {
-    const res = await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "New Chat" }),
-    });
-    const data = await res.json();
-    await fetchConversations();
-    setActiveId(data._id);
-    setMessages([]);
-    setTone(data.tone);
-    setSidebarOpen(false);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "New Chat" }),
+      });
+      const data = await res.json();
+      await fetchConversations();
+      setActiveId(data._id);
+      setMessages([]);
+      setTone(data.tone);
+      setSidebarOpen(false);
+    } catch {}
   };
 
   const handleNewMessage = (msg: Message) => {
@@ -77,7 +85,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background">
       <ConversationSidebar
         conversations={conversations}
         activeId={activeId}
@@ -98,14 +106,23 @@ export default function Home() {
           onMenuClick={() => setSidebarOpen(true)}
         />
       ) : (
-        <main className="flex-1 flex items-center justify-center bg-bg-primary">
-          <div className="text-center">
-            <button
-              onClick={handleNewChat}
-              className="px-6 py-3 bg-bg-user-bubble text-white text-sm font-medium rounded-lg hover:bg-stone-700 transition-colors"
-            >
-              Start your first chat
-            </button>
+        <main className="flex-1 flex items-center justify-center bg-background">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+              <MessageSquarePlus size={28} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground mb-1">
+                Start a conversation
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                Begin a new chat to get help from the AI assistant.
+              </p>
+            </div>
+            <Button onClick={handleNewChat} className="gap-2">
+              <MessageSquarePlus size={16} />
+              New Chat
+            </Button>
           </div>
         </main>
       )}

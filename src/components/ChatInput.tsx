@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowUp } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -14,7 +16,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + "px";
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 160) + "px";
     }
   }, [input]);
 
@@ -34,32 +37,42 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     }
   };
 
+  const canSend = input.trim().length > 0 && !disabled;
+
   return (
-    <div className="border-t border-border bg-bg-secondary p-4">
+    <div className="border-t border-border bg-background p-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-end gap-3 bg-bg-primary rounded-xl px-4 py-3 border border-border focus-within:border-stone-300 transition-colors">
+        <div
+          className={`
+            flex items-end gap-2 rounded-xl border bg-background
+            px-4 py-3
+            transition-colors duration-150
+            ${disabled ? "border-muted bg-muted/50" : "border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"}
+          `}
+        >
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={disabled ? "Waiting for response..." : "Type a message..."}
             rows={1}
             disabled={disabled}
-            className="flex-1 bg-transparent resize-none outline-none text-sm text-text-primary placeholder:text-stone-400 max-h-40"
+            aria-label="Message input"
+            className="flex-1 bg-transparent resize-none outline-none text-sm text-foreground placeholder:text-muted-foreground max-h-40 disabled:cursor-not-allowed"
           />
-          <button
+          <Button
+            size="icon"
             onClick={handleSubmit}
-            disabled={!input.trim() || disabled}
-            className="flex-shrink-0 p-2 rounded-lg bg-bg-user-bubble text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-stone-700 transition-colors"
+            disabled={!canSend}
+            aria-label="Send message"
+            className="h-8 w-8 rounded-lg shrink-0"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-            </svg>
-          </button>
+            <ArrowUp size={16} />
+          </Button>
         </div>
-        <p className="text-xs text-stone-400 mt-2 text-center">
-          Press Enter to send, Shift+Enter for new line
+        <p className="text-[11px] text-muted-foreground mt-2 text-center">
+          Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">Shift+Enter</kbd> for new line
         </p>
       </div>
     </div>

@@ -1,5 +1,9 @@
 "use client";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Plus, MessageSquare } from "lucide-react";
+
 interface Conversation {
   _id: string;
   title: string;
@@ -26,60 +30,84 @@ export default function ConversationSidebar({
 }: SidebarProps) {
   return (
     <>
+      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden transition-opacity"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
+
       <aside
+        role="navigation"
+        aria-label="Conversation history"
         className={`
-          fixed lg:relative z-30 h-full w-72 bg-bg-sidebar flex flex-col
+          fixed lg:relative z-30 h-full w-72
+          bg-sidebar-bg text-sidebar-fg
+          flex flex-col
           transition-transform duration-200 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className="p-4 border-b border-border-sidebar">
-          <button
+        {/* Header */}
+        <div className="p-4 flex items-center justify-between">
+          <h1 className="text-sm font-semibold tracking-tight">Conversations</h1>
+          <Button
+            size="sm"
             onClick={onNew}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-800 hover:bg-stone-700 text-text-sidebar text-sm font-medium rounded-lg transition-colors"
+            className="h-8 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+            aria-label="Start new conversation"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            New Chat
-          </button>
+            <Plus size={14} />
+            <span className="hidden sm:inline">New</span>
+          </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-          {conversations.length === 0 && (
-            <p className="text-text-sidebar-muted text-sm px-3 py-6 text-center">
-              No conversations yet
-            </p>
-          )}
-          {conversations.map((conv) => (
-            <button
-              key={conv._id}
-              onClick={() => {
-                onSelect(conv._id);
-                onClose();
-              }}
-              className={`
-                conv-item w-full text-left px-3 py-2.5 rounded-lg text-sm truncate
-                ${
-                  activeId === conv._id
-                    ? "bg-bg-sidebar-hover text-text-sidebar"
-                    : "text-text-sidebar-muted hover:bg-bg-sidebar-hover hover:text-text-sidebar"
-                }
-              `}
-            >
-              {conv.title}
-            </button>
-          ))}
-        </nav>
+        {/* Divider */}
+        <div className="h-px bg-white/10 mx-4" />
 
-        <div className="p-4 border-t border-border-sidebar">
-          <p className="text-text-sidebar-muted text-xs">
+        {/* Conversation list */}
+        <ScrollArea className="flex-1 px-2 py-2">
+          {conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <MessageSquare size={24} className="text-sidebar-muted mb-2" />
+              <p className="text-sidebar-muted text-xs">
+                No conversations yet. Start one to begin.
+              </p>
+            </div>
+          ) : (
+            <nav className="space-y-0.5" role="list">
+              {conversations.map((conv) => (
+                <button
+                  key={conv._id}
+                  onClick={() => {
+                    onSelect(conv._id);
+                    onClose();
+                  }}
+                  role="listitem"
+                  aria-current={activeId === conv._id ? "page" : undefined}
+                  className={`
+                    w-full text-left px-3 py-2.5 rounded-lg text-sm
+                    transition-colors duration-100
+                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-sidebar-bg
+                    ${
+                      activeId === conv._id
+                        ? "bg-sidebar-active text-white font-medium"
+                        : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-fg"
+                    }
+                  `}
+                >
+                  <span className="truncate block">{conv.title}</span>
+                </button>
+              ))}
+            </nav>
+          )}
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-white/10">
+          <p className="text-sidebar-muted text-[10px] uppercase tracking-wider">
             Powered by Gemini
           </p>
         </div>
