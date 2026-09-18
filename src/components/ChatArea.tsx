@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Menu, AlertCircle } from "lucide-react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import ToneToggle from "./ToneToggle";
+import ProviderSelector from "./ProviderSelector";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,7 +17,9 @@ interface ChatAreaProps {
   conversationId: string;
   messages: Message[];
   tone: string;
+  provider: string;
   onToneChange: (tone: string) => void;
+  onProviderChange: (provider: string) => void;
   onNewMessage: (msg: Message) => void;
   onMenuClick: () => void;
 }
@@ -26,7 +28,9 @@ export default function ChatArea({
   conversationId,
   messages,
   tone,
+  provider,
   onToneChange,
+  onProviderChange,
   onNewMessage,
   onMenuClick,
 }: ChatAreaProps) {
@@ -52,10 +56,12 @@ export default function ChatArea({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationId, message }),
+        cache: "no-store",
       });
 
       if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || `Server error: ${res.status}`);
       }
 
       const reader = res.body?.getReader();
@@ -63,13 +69,15 @@ export default function ChatArea({
 
       const decoder = new TextDecoder();
       let fullText = "";
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const text = decoder.decode(value);
-        const lines = text.split("\n");
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
@@ -91,7 +99,7 @@ export default function ChatArea({
         }
       }
     } catch (err) {
-      setError("Failed to get response. Check your connection and try again.");
+      setError(err instanceof Error ? err.message : "Failed to get response.");
       setStreamContent("");
     } finally {
       setStreaming(false);
@@ -109,6 +117,26 @@ export default function ChatArea({
     } catch {}
   };
 
+  const handleProviderChange = async (newProvider: string) => {
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/provider`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: newProvider }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to switch provider");
+        return;
+      }
+
+      onProviderChange(newProvider);
+    } catch {
+      setError("Failed to switch provider");
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col h-full min-w-0 bg-background">
       {/* Header */}
@@ -122,8 +150,10 @@ export default function ChatArea({
         >
           <Menu size={18} />
         </Button>
-        <div className="flex-1" />
-        <ToneToggle value={tone} onChange={handleToneChange} />
+        <div className="flex-1 flex justify-center lg:justify-end gap-2">
+          <ProviderSelector value={provider} onChange={handleProviderChange} />
+          <ToneToggle value={tone} onChange={handleToneChange} />
+        </div>
       </header>
 
       {/* Messages */}
@@ -173,19 +203,18 @@ export default function ChatArea({
             </div>
           )}
 
-          {/* Error state */}
           {error && (
             <div
               className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm mb-3 animate-fade-in"
               role="alert"
             >
               <AlertCircle size={16} className="shrink-0" />
-              <span>{error}</span>
+              <span className="flex-1">{error}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setError(null)}
-                className="ml-auto h-6 text-destructive hover:text-destructive/80"
+                className="h-6 text-destructive hover:text-destructive/80"
               >
                 Dismiss
               </Button>
@@ -196,7 +225,6 @@ export default function ChatArea({
         </div>
       </div>
 
-      {/* Input */}
       <ChatInput onSend={handleSend} disabled={streaming} />
     </main>
   );

@@ -10,6 +10,7 @@ interface Conversation {
   _id: string;
   title: string;
   tone: string;
+  provider: string;
   updatedAt: string;
 }
 
@@ -23,6 +24,7 @@ export default function Home() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [tone, setTone] = useState("professional");
+  const [provider, setProvider] = useState("gemini");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const fetchConversations = useCallback(async () => {
@@ -44,6 +46,7 @@ export default function Home() {
       setActiveId(id);
       setMessages(data.messages || []);
       setTone(data.tone || "professional");
+      setProvider(data.provider || "gemini");
       setSidebarOpen(false);
     } catch {}
   };
@@ -60,6 +63,7 @@ export default function Home() {
       setActiveId(data._id);
       setMessages([]);
       setTone(data.tone);
+      setProvider(data.provider || "gemini");
       setSidebarOpen(false);
     } catch {}
   };
@@ -84,6 +88,13 @@ export default function Home() {
     );
   };
 
+  const handleProviderChange = (newProvider: string) => {
+    setProvider(newProvider);
+    setConversations((prev) =>
+      prev.map((c) => (c._id === activeId ? { ...c, provider: newProvider } : c))
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <ConversationSidebar
@@ -101,7 +112,9 @@ export default function Home() {
           conversationId={activeId}
           messages={messages}
           tone={tone}
+          provider={provider}
           onToneChange={handleToneChange}
+          onProviderChange={handleProviderChange}
           onNewMessage={handleNewMessage}
           onMenuClick={() => setSidebarOpen(true)}
         />

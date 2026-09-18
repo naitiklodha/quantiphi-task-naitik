@@ -7,10 +7,12 @@ export interface IMessage {
 }
 
 export type Tone = "professional" | "casual" | "concise";
+export type AIProvider = "gemini" | "openai" | "claude";
 
 export interface IConversation extends Document {
   title: string;
   tone: Tone;
+  provider: AIProvider;
   messages: IMessage[];
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +31,11 @@ const ConversationSchema = new Schema<IConversation>(
       type: String,
       enum: ["professional", "casual", "concise"],
       default: "professional",
+    },
+    provider: {
+      type: String,
+      enum: ["gemini", "openai", "claude"],
+      default: "gemini",
     },
     messages: [MessageSchema],
   },

@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Conversation from "@/models/Conversation";
-import { streamChat, AIProvider } from "@/lib/ai-providers";
+import { streamChat } from "@/lib/ai-providers";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
       conversation.title = message.trim().slice(0, 50);
     }
 
-    const provider = (process.env.AI_PROVIDER as AIProvider) || "gemini";
+    const provider = conversation.provider || "gemini";
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -72,8 +74,9 @@ export async function POST(request: NextRequest) {
     return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
       },
     });
   } catch {
