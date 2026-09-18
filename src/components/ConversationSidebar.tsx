@@ -95,7 +95,7 @@ export default function ConversationSidebar({
                   className={`
                     w-full text-left px-3 py-2.5 rounded-lg text-sm cursor-pointer
                     transition-colors duration-100
-                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-sidebar-bg
+                    focus:outline-none
                     ${
                       activeId === conv._id
                         ? "bg-sidebar-active text-white font-medium"
